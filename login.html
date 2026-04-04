@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизація</title>
+    <style>
+        /* Базові налаштування та змінні */
+        :root {
+            --primary-blue: #005AEE;
+            --primary-blue-hover: #0045B8;
+            --bg-white: #FFFFFF;
+            --text-dark: #111827;
+            --text-light: #6B7280;
+            --border-color: #E5E7EB;
+            --input-bg: #F9FAFB;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #F3F4F6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Головний контейнер */
+        .app-container {
+            background-color: var(--bg-white);
+            width: 100%;
+            max-width: 400px;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 401px) {
+            .app-container {
+                min-height: 800px;
+                border-radius: 24px;
+            }
+        }
+
+        /* Сповіщення (Toast) */
+        .toast {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px); /* Сховано за межами зверху */
+            background-color: var(--bg-white);
+            color: var(--text-dark);
+            padding: 14px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 100;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            width: max-content;
+            max-width: 90%;
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            border-left: 4px solid #EF4444; /* Червоний колір для помилки */
+        }
+
+        /* Екрани */
+        .screen {
+            display: flex;
+            flex-direction: column;
+            padding: 40px 24px;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: var(--bg-white);
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(20px);
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateX(0);
+            z-index: 10;
+        }
+
+        .screen.hidden-left {
+            transform: translateX(-20px);
+        }
+
+        /* Тексти */
+        h1 {
+            color: var(--text-dark);
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        p.subtitle {
+            color: var(--text-light);
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 40px;
+        }
+
+        /* Кнопки */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: white;
+            box-shadow: 0 4px 14px rgba(0, 90, 238, 0.3);
+        }
+
+        .btn-primary:active {
+            background-color: var(--primary-blue-hover);
+            transform: scale(0.98);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+        }
+
+        .btn-outline:active {
+            background-color: #eff6ff;
+            transform: scale(0.98);
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 30px;
+            width: fit-content;
+            padding: 8px 0;
+        }
+
+        /* Форми */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            font-size: 16px;
+            color: var(--text-dark);
+            transition: all 0.2s ease;
+        }
+
+        .form-group input::placeholder {
+            color: #9CA3AF;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            background-color: var(--bg-white);
+            box-shadow: 0 0 0 4px rgba(0, 90, 238, 0.1);
+        }
+
+        .spacer {
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div id="toast-notification" class="toast">
+            <span id="toast-message">Повідомлення</span>
+        </div>
+
+        <div id="screen-welcome" class="screen active">
+            <div class="spacer" style="flex-grow: 0.5;"></div>
+            
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #005AEE, #60A5FA); border-radius: 16px; margin-bottom: 24px; display: flex; justify-content: center; align-items: center;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+
+            <h1 id="welcome-title">Раді бачити!</h1>
+            <p id="welcome-subtitle" class="subtitle">Увійдіть у свій обліковий запис або створіть новий, щоб продовжити.</p>
+            
+            <div class="spacer"></div>
+
+            <button class="btn btn-primary" onclick="showScreen('screen-register')">Зареєструватись</button>
+            <button class="btn btn-outline" onclick="showScreen('screen-login')">Увійти</button>
+        </div>
+
+        <div id="screen-register" class="screen">
+            <button class="btn-back" onclick="showScreen('screen-welcome')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Назад
+            </button>
+            
+            <h1>Створити акаунт</h1>
+            <p class="subtitle">Заповніть дані нижче, щоб долучитися.</p>
+
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="reg-name">Ваше ім'я</label>
+                    <input type="text" id="reg-name" placeholder="Ім'я" required autocomplete="name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="reg-email">Електрона скринька</label>
+                    <input type="email" id="reg-email" placeholder="Електрона скринька" required autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-password">Пароль</label>
+                    <input type="password" id="reg-password" placeholder="Пароль" required>
+                </div>
+
+                <div class="spacer"></div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 24px;">Зареєструватися</button>
+            </form>
+        </div>
+
+        <div id="screen-login" class="screen">
+            <button class="btn-back" onclick="showScreen('screen-welcome')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Назад
+            </button>
+            
+            <h1>З поверненням</h1>
+            <p class="subtitle">Введіть свої дані для входу.</p>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Електрона скринька</label>
+                    <input type="email" id="login-email" placeholder="Електрона скринька" required autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="login-password">Пароль</label>
+                    <input type="password" id="login-password" placeholder="Пароль" required>
+                </div>
+
+                <div class="spacer"></div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 24px;">Увійти</button>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        // Функція для показу стильного сповіщення
+        function showNotification(message, isError = false) {
+            const toast = document.getElementById('toast-notification');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.innerText = message;
+            
+            if (isError) {
+                toast.classList.add('error');
+            } else {
+                toast.classList.remove('error');
+            }
+
+            // Показуємо повідомлення
+            toast.classList.add('show');
+
+            // Якщо це не помилка (тобто успішний вхід), не ховаємо його одразу, 
+            // бо користувача все одно перекине на іншу сторінку.
+            // Але якщо це помилка, ховаємо через 3 секунди.
+            if (isError) {
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Логіка перемикання екранів
+        function showScreen(screenId) {
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(screen => {
+                if(screen.id === screenId) {
+                    screen.classList.add('active');
+                    screen.classList.remove('hidden-left');
+                } else {
+                    screen.classList.remove('active');
+                    if(screenId !== 'screen-welcome') {
+                        document.getElementById('screen-welcome').classList.add('hidden-left');
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkUserData();
+        });
+
+        function checkUserData() {
+            const savedData = localStorage.getItem('userAccount');
+            if (savedData) {
+                const user = JSON.parse(savedData);
+                document.getElementById('welcome-title').innerText = `Вітаємо, ${user.name}!`;
+                document.getElementById('welcome-subtitle').innerText = "Увійдіть у свій обліковий запис, будь ласка.";
+                
+                document.getElementById('login-email').value = user.email;
+                document.getElementById('login-password').value = user.password;
+            }
+        }
+
+        // Реєстрація
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+
+            const userData = { name, email, password };
+            localStorage.setItem('userAccount', JSON.stringify(userData));
+
+            checkUserData();
+            this.reset();
+            
+            showNotification('Реєстрація успішна! Тепер увійдіть.');
+            
+            // Після невеликої затримки перемикаємо на екран логіну, щоб сповіщення не зникло миттєво
+            setTimeout(() => {
+                showScreen('screen-login');
+                document.getElementById('toast-notification').classList.remove('show'); // ховаємо сповіщення
+            }, 1500);
+        });
+
+        // Авторизація та перенаправлення
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const emailInput = document.getElementById('login-email').value;
+            const passwordInput = document.getElementById('login-password').value;
+            const savedData = localStorage.getItem('userAccount');
+
+            if (savedData) {
+                const user = JSON.parse(savedData);
+                if (user.email === emailInput && user.password === passwordInput) {
+                    
+                    // Викликаємо наше кастомне вікно замість alert()
+                    showNotification(`Успішний вхід! Привіт, ${user.name} 👋`);
+                    
+                    // Чекаємо 1.5 секунди і перекидаємо на vitalik.html
+                    setTimeout(() => {
+                        window.location.href = 'vitalik.html';
+                    }, 1500);
+
+                } else {
+                    showNotification('Невірна пошта або пароль. Спробуйте ще раз.', true);
+                }
+            } else {
+                showNotification('Акаунт не знайдено. Зареєструйтесь спочатку.', true);
+            }
+        });
+    </script>
+</body>
+</html>
