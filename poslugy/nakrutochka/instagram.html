@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pikles — Накрутка Instagram</title>
+    <style>
+        :root {
+            --primary-blue: #005AEE;
+            --bg-white: #FFFFFF;
+            --text-dark: #111827;
+            --text-light: #6B7280;
+            --border-color: #E5E7EB;
+            --input-bg: #F9FAFB;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #F3F4F6;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            background-color: var(--bg-white);
+            width: 100%;
+            max-width: 400px;
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding-bottom: 30px;
+        }
+
+        @media (min-width: 401px) {
+            .app-container {
+                min-height: 800px;
+                border-radius: 24px;
+                margin: 20px 0;
+            }
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            cursor: pointer;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-title { font-size: 18px; font-weight: 700; }
+
+        .content { padding: 24px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { 
+            display: block; 
+            font-size: 13px; 
+            font-weight: 700; 
+            color: var(--text-dark); 
+            margin-bottom: 8px; 
+        }
+
+        .custom-input, .custom-select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            font-size: 15px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .custom-input:focus { border-color: var(--primary-blue); background: white; }
+
+        .price-tag {
+            background: #F5F3FF;
+            color: var(--primary-blue);
+            padding: 16px;
+            border-radius: 14px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 20px;
+            margin: 24px 0;
+            border: 1px solid rgba(0, 90, 238, 0.1);
+        }
+
+        .hidden { display: none; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+            background: white; padding: 14px 24px; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 1000;
+            transition: 0.4s; border-left: 4px solid var(--primary-blue); font-weight: 600;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast">Замовлення прийнято! 📸</div>
+
+    <div class="app-container">
+        <header>
+            <button class="back-btn" onclick="location.href='../../vitalik.html'">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <div class="header-title">Накрутка Instagram</div>
+        </header>
+
+        <div class="content">
+            <form id="insta-form">
+                
+                <div class="form-group">
+                    <label>Оберіть послугу</label>
+                    <select id="main-service" class="custom-select" onchange="updateUI()">
+                        <option value="followers">Підписники</option>
+                        <option value="likes">Лайки</option>
+                        <option value="comments">Коментарі</option>
+                        <option value="views">Перегляди</option>
+                    </select>
+                </div>
+
+                <div id="sub-type-block" class="form-group">
+                    <label>Оберіть тариф</label>
+                    <select id="sub-type" class="custom-select" onchange="calculatePrice()">
+                        </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Посилання на профіль/пост</label>
+                    <input type="text" id="insta-link" class="custom-input" placeholder="https://www.instagram.com/..." required>
+                </div>
+
+                <div class="form-group">
+                    <label id="qty-label">Кількість</label>
+                    <input type="number" id="qty" class="custom-input" value="100" min="1" oninput="calculatePrice()">
+                </div>
+
+                <div class="price-tag">
+                    До сплати: <span id="total-price">27.00</span> грн
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn-submit">Замовити накрутку</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const instaServices = {
+            followers: [
+                { n: "від 100 шт (27 грн / 100)", p: 27, base: 100 },
+                { n: "від 1000 шт (290 грн / 1000)", p: 290, base: 1000 }
+            ],
+            likes: [
+                { n: "від 50 шт (4.50 грн)", p: 4.5, base: 50 },
+                { n: "від 100 шт (10.00 грн)", p: 10, base: 100 },
+                { n: "від 1000 шт (90.00 грн)", p: 90, base: 1000 },
+                { n: "Жіночі лайки (25 грн / 100)", p: 25, base: 100 },
+                { n: "Чоловічі лайки (35 грн / 100)", p: 35, base: 100 }
+            ],
+            comments: [
+                { n: "Позитивні (смайли) (15 грн / 10)", p: 15, base: 10 },
+                { n: "Позитивні (текст) (30 грн / 10)", p: 30, base: 10 }
+            ],
+            views: [
+                { n: "IGTV перегляди (22 грн / 1000)", p: 22, base: 1000 },
+                { n: "REELS перегляди (22 грн / 1000)", p: 22, base: 1000 }
+            ]
+        };
+
+        function updateUI() {
+            const service = document.getElementById('main-service').value;
+            const subSelect = document.getElementById('sub-type');
+            
+            subSelect.innerHTML = "";
+            instaServices[service].forEach((item, index) => {
+                let opt = document.createElement('option');
+                opt.value = index;
+                opt.text = item.n;
+                subSelect.appendChild(opt);
+            });
+
+            // Налаштування початкової кількості для зручності
+            const qtyInput = document.getElementById('qty');
+            if(service === 'comments') qtyInput.value = 10;
+            else if(service === 'views') qtyInput.value = 1000;
+            else qtyInput.value = 100;
+
+            calculatePrice();
+        }
+
+        function calculatePrice() {
+            const service = document.getElementById('main-service').value;
+            const subIdx = document.getElementById('sub-type').value;
+            const qty = parseFloat(document.getElementById('qty').value) || 0;
+            
+            const item = instaServices[service][subIdx];
+            const total = (qty / item.base) * item.p;
+            
+            document.getElementById('total-price').innerText = total.toFixed(2);
+        }
+
+        document.getElementById('insta-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            
+            const serviceName = document.getElementById('main-service').selectedOptions[0].text;
+            const subName = document.getElementById('sub-type').selectedOptions[0].text;
+            
+            const message = `Новий тікет! [Послуги накрутки]\n\n` +
+                            `Платформа: Instagram\n` +
+                            `Сервіс: ${serviceName}\n` +
+                            `Тариф: ${subName}\n` +
+                            `Кількість: ${document.getElementById('qty').value} шт\n` +
+                            `Сума: ${document.getElementById('total-price').innerText} грн\n` +
+                            `Посилання: ${document.getElementById('insta-link').value}\n\n` +
+                            `telegram клієнта: @Vitalik_3331`;
+
+            btn.disabled = true;
+            btn.innerText = "Відправка...";
+
+            try {
+                await fetch(`https://api.telegram.org/bot8772032690:AAEa4MUdtUmiwEOPAIwpkkow9_I7-eudNrU/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: "2106920885", text: message })
+                });
+                document.getElementById('toast').classList.add('show');
+                setTimeout(() => { window.location.href = '../../vitalik.html'; }, 2000);
+            } catch (err) {
+                alert('Помилка мережі');
+                btn.disabled = false;
+            }
+        });
+
+        // Ініціалізація
+        updateUI();
+    </script>
+</body>
+</html>
