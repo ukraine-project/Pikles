@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pikles — Накрутка Telegram</title>
+    <style>
+        :root {
+            --primary-blue: #005AEE;
+            --bg-white: #FFFFFF;
+            --text-dark: #111827;
+            --text-light: #6B7280;
+            --border-color: #E5E7EB;
+            --input-bg: #F9FAFB;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #F3F4F6;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            background-color: var(--bg-white);
+            width: 100%;
+            max-width: 400px;
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding-bottom: 30px;
+        }
+
+        @media (min-width: 401px) {
+            .app-container {
+                min-height: 800px;
+                border-radius: 24px;
+                margin: 20px 0;
+            }
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            cursor: pointer;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-title { font-size: 18px; font-weight: 700; }
+
+        .content { padding: 24px; }
+
+        .service-card {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { 
+            display: block; 
+            font-size: 13px; 
+            font-weight: 700; 
+            color: var(--text-dark); 
+            margin-bottom: 8px; 
+        }
+
+        .custom-input, .custom-select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background-color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .price-tag {
+            background: #E0F2FE;
+            color: var(--primary-blue);
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+
+        .hidden { display: none; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+            background: white; padding: 14px 24px; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 1000;
+            transition: 0.4s; border-left: 4px solid var(--primary-blue); font-weight: 600;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast">Замовлення надіслано! 🚀</div>
+
+    <div class="app-container">
+        <header>
+            <button class="back-btn" onclick="location.href='../../vitalik.html'">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <div class="header-title">Накрутка Telegram</div>
+        </header>
+
+        <div class="content">
+            <form id="tg-form">
+                
+                <div class="form-group">
+                    <label>Оберіть послугу</label>
+                    <select id="main-service" class="custom-select" onchange="updateUI()">
+                        <option value="subscribers">Підписники (28 грн / 100 шт)</option>
+                        <option value="views">Перегляди на пости</option>
+                        <option value="auto-views">Авто-перегляди (майбутні)</option>
+                        <option value="reactions">Реакції (15 грн / 50 шт)</option>
+                    </select>
+                </div>
+
+                <div id="posts-count-block" class="form-group hidden">
+                    <label>Кількість постів</label>
+                    <select id="posts-count" class="custom-select" onchange="calculatePrice()">
+                        <option value="1" data-price="3">1 пост (3 грн / 100 шт)</option>
+                        <option value="5" data-price="12">5 постів (12 грн / 100 шт)</option>
+                        <option value="10" data-price="20">10 постів (20 грн / 100 шт)</option>
+                        <option value="20" data-price="22">20 постів (22 грн / 100 шт)</option>
+                        <option value="50" data-price="32">50 постів (32 грн / 100 шт)</option>
+                    </select>
+                </div>
+
+                <div id="auto-posts-block" class="form-group hidden">
+                    <label>Кількість майбутніх постів</label>
+                    <select id="auto-posts-count" class="custom-select" onchange="calculatePrice()">
+                        <option value="5" data-price="13">5 постів (13 грн / 100 шт)</option>
+                        <option value="10" data-price="20">10 постів (20 грн / 100 шт)</option>
+                        <option value="20" data-price="25">20 постів (25 грн / 100 шт)</option>
+                        <option value="50" data-price="55">50 постів (55 грн / 100 шт)</option>
+                    </select>
+                </div>
+
+                <div id="reactions-block" class="form-group hidden">
+                    <label>Оберіть реакцію</label>
+                    <select id="reaction-type" class="custom-select" onchange="checkOtherReaction()">
+                        <option value="лайк">👍 Лайк</option>
+                        <option value="серце">❤️ Серце</option>
+                        <option value="вогонь">🔥 Вогонь</option>
+                        <option value="мікс">🎭 Мікс (Позитив/Негатив)</option>
+                        <option value="здивування">😮 Здивування</option>
+                        <option value="посмішка">😁 Посмішка</option>
+                        <option value="дизлайк">👎 Дизлайк</option>
+                        <option value="какашка">💩 Какашка</option>
+                        <option value="нудота">🤮 Нудота</option>
+                        <option value="other">Інша (вписати вручну)</option>
+                    </select>
+                    <input type="text" id="reaction-other" class="custom-input hidden" style="margin-top:10px" placeholder="Яку саме реакцію?">
+                </div>
+
+                <div class="form-group">
+                    <label>Посилання на канал/пост</label>
+                    <input type="text" id="tg-link" class="custom-input" placeholder="https://t.me/..." required>
+                </div>
+
+                <div class="form-group">
+                    <label id="qty-label">Кількість (шт)</label>
+                    <input type="number" id="qty" class="custom-input" value="100" min="1" oninput="calculatePrice()">
+                </div>
+
+                <div class="price-tag">
+                    До сплати: <span id="total-price">28.00</span> грн
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn-submit">Оплатити та запустити</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function updateUI() {
+            const service = document.getElementById('main-service').value;
+            
+            // Ховаємо все
+            document.getElementById('posts-count-block').classList.add('hidden');
+            document.getElementById('auto-posts-block').classList.add('hidden');
+            document.getElementById('reactions-block').classList.add('hidden');
+            
+            // Показуємо потрібне
+            if(service === 'views') document.getElementById('posts-count-block').classList.remove('hidden');
+            if(service === 'auto-views') document.getElementById('auto-posts-block').classList.remove('hidden');
+            if(service === 'reactions') document.getElementById('reactions-block').classList.remove('hidden');
+            
+            // Оновлюємо лейбл кількості
+            document.getElementById('qty-label').innerText = (service === 'reactions') ? 'Кількість (кратність 50)' : 'Кількість (кратність 100)';
+            
+            calculatePrice();
+        }
+
+        function checkOtherReaction() {
+            const val = document.getElementById('reaction-type').value;
+            document.getElementById('reaction-other').classList.toggle('hidden', val !== 'other');
+        }
+
+        function calculatePrice() {
+            const service = document.getElementById('main-service').value;
+            const qty = parseInt(document.getElementById('qty').value) || 0;
+            let total = 0;
+
+            if(service === 'subscribers') {
+                total = (qty / 100) * 28;
+            } else if(service === 'views') {
+                const pricePer100 = document.getElementById('posts-count').selectedOptions[0].getAttribute('data-price');
+                total = (qty / 100) * pricePer100;
+            } else if(service === 'auto-views') {
+                const pricePer100 = document.getElementById('auto-posts-count').selectedOptions[0].getAttribute('data-price');
+                total = (qty / 100) * pricePer100;
+            } else if(service === 'reactions') {
+                total = (qty / 50) * 15;
+            }
+
+            document.getElementById('total-price').innerText = total.toFixed(2);
+        }
+
+        document.getElementById('tg-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const service = document.getElementById('main-service').value;
+            const qty = document.getElementById('qty').value;
+            const price = document.getElementById('total-price').innerText;
+            const link = document.getElementById('tg-link').value;
+
+            let details = "";
+            if(service === 'views') details = `Постів: ${document.getElementById('posts-count').value}`;
+            if(service === 'auto-views') details = `Майбутніх постів: ${document.getElementById('auto-posts-count').value}`;
+            if(service === 'reactions') {
+                const rType = document.getElementById('reaction-type').value;
+                details = `Реакція: ${rType === 'other' ? document.getElementById('reaction-other').value : rType}`;
+            }
+
+            const message = `Новий тікет! [Послуги накрутки]\n\n` +
+                            `Платформа: Telegram\n` +
+                            `Сервіс: ${document.getElementById('main-service').selectedOptions[0].text.split('(')[0]}\n` +
+                            `Деталі: ${details}\n` +
+                            `Кількість: ${qty} шт\n` +
+                            `Сума: ${price} грн\n` +
+                            `Посилання: ${link}\n\n` +
+                            `telegram клієнта: @Vitalik_3331`;
+
+            btn.disabled = true;
+            btn.innerText = "Відправка...";
+
+            try {
+                await fetch(`https://api.telegram.org/bot8772032690:AAEa4MUdtUmiwEOPAIwpkkow9_I7-eudNrU/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: "2106920885", text: message })
+                });
+                document.getElementById('toast').classList.add('show');
+                setTimeout(() => { window.location.href = '../../vitalik.html'; }, 2000);
+            } catch (err) {
+                alert('Помилка!');
+                btn.disabled = false;
+            }
+        });
+
+        // Ініціалізація ціни
+        calculatePrice();
+    </script>
+</body>
+</html>

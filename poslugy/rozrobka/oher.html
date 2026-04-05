@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pikles — Скрипти та Боти</title>
+    <style>
+        :root {
+            --primary-blue: #005AEE;
+            --bg-white: #FFFFFF;
+            --text-dark: #111827;
+            --text-light: #6B7280;
+            --border-color: #E5E7EB;
+            --input-bg: #F9FAFB;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #F3F4F6;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            background-color: var(--bg-white);
+            width: 100%;
+            max-width: 400px;
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding-bottom: 30px;
+        }
+
+        @media (min-width: 401px) {
+            .app-container {
+                min-height: 800px;
+                border-radius: 24px;
+                margin: 20px 0;
+            }
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            cursor: pointer;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-title { font-size: 18px; font-weight: 700; }
+
+        .content { padding: 24px; }
+
+        .intro-text { margin-bottom: 24px; }
+        .intro-text h1 { font-size: 24px; color: var(--text-dark); margin-bottom: 6px; }
+        .intro-text p { font-size: 14px; color: var(--text-light); line-height: 1.5; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { 
+            display: block; 
+            font-size: 13px; 
+            font-weight: 600; 
+            color: var(--text-dark); 
+            margin-bottom: 8px; 
+        }
+
+        .custom-input, .custom-select, textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        .select-wrapper { position: relative; }
+        .select-wrapper::after {
+            content: '▼';
+            font-size: 10px;
+            color: var(--text-light);
+            position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .custom-input:focus, textarea:focus {
+            outline: none; border-color: var(--primary-blue); background: white;
+        }
+
+        .hidden-field { display: none; margin-top: 10px; animation: slideDown 0.3s ease; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Бюджет */
+        .radio-stack { display: flex; flex-direction: column; gap: 8px; }
+        .radio-option { position: relative; }
+        .radio-option input { position: absolute; opacity: 0; }
+        .radio-label {
+            display: block; padding: 14px 16px; background: var(--input-bg);
+            border: 1px solid var(--border-color); border-radius: 12px;
+            font-size: 14px; cursor: pointer; transition: 0.2s;
+        }
+        .radio-option input:checked + .radio-label {
+            border-color: var(--primary-blue); background-color: #f0f7ff; font-weight: 600;
+        }
+
+        .btn-submit {
+            width: 100%; padding: 16px; background: var(--primary-blue);
+            color: white; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px;
+        }
+
+        .btn-submit:active { transform: scale(0.98); }
+
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+            background: white; padding: 14px 24px; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 1000;
+            transition: 0.4s; border-left: 4px solid var(--primary-blue); font-weight: 600;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast">Запит успішно надіслано! ✨</div>
+
+    <div class="app-container">
+        <header>
+            <button class="back-btn" onclick="location.href='../../vitalik.html'">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <div class="header-title">Скрипти та автоматизація</div>
+        </header>
+
+        <div class="content">
+            <div class="intro-text">
+                <h1>Будь-яка задача ⚡</h1>
+                <p>Потрібен Telegram-бот, парсер даних чи автоматизація рутинних дій? Опиши свою ідею, і я знайду технічне рішення.</p>
+            </div>
+
+            <form id="other-form">
+                <div class="form-group">
+                    <label>Назва проекту</label>
+                    <input type="text" id="proj-name" class="custom-input" placeholder="Наприклад: Бот для розсилки" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Категорія</label>
+                    <div class="select-wrapper">
+                        <select id="category-select" class="custom-select" onchange="checkCategory(this)" required>
+                            <option value="Telegram Бот">Telegram Бот</option>
+                            <option value="Скрипт (Python/JS)">Скрипт (Python/JS)</option>
+                            <option value="Автоматизація">Автоматизація дій</option>
+                            <option value="Інше">Інше (вписати свій варіант)</option>
+                        </select>
+                    </div>
+                    <input type="text" id="category-other" class="custom-input hidden-field" placeholder="Вкажіть свій тип послуги">
+                </div>
+
+                <div class="form-group">
+                    <label>Суть задачі (до 1000 символів)</label>
+                    <textarea id="essence" rows="6" maxlength="1000" class="custom-input" placeholder="Детально опишіть, що саме має робити скрипт чи бот..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Кошти</label>
+                    <div class="radio-stack">
+                        <label class="radio-option">
+                            <input type="radio" name="budget" value="developer" checked onchange="toggleBudget(this)">
+                            <div class="radio-label">На розгляд розробника</div>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="budget" value="custom" onchange="toggleBudget(this)">
+                            <div class="radio-label">Своя сума</div>
+                        </label>
+                        <input type="number" id="budget-manual" class="custom-input hidden-field" placeholder="Сума в грн">
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn-submit">Надіслати тікет</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function checkCategory(select) {
+            const otherField = document.getElementById('category-other');
+            if (select.value === 'Інше') {
+                otherField.style.display = 'block';
+                otherField.required = true;
+            } else {
+                otherField.style.display = 'none';
+                otherField.required = false;
+            }
+        }
+
+        function toggleBudget(radio) {
+            const manual = document.getElementById('budget-manual');
+            manual.style.display = (radio.value === 'custom') ? 'block' : 'none';
+            manual.required = (radio.value === 'custom');
+        }
+
+        document.getElementById('other-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            
+            const BOT_TOKEN = "8772032690:AAEa4MUdtUmiwEOPAIwpkkow9_I7-eudNrU";
+            const CHAT_ID = "2106920885";
+
+            let category = document.getElementById('category-select').value;
+            if (category === 'Інше') category = document.getElementById('category-other').value;
+
+            const projName = document.getElementById('proj-name').value;
+            const essence = document.getElementById('essence').value;
+            
+            let budget = "На розгляд розробника";
+            if (document.querySelector('input[name="budget"]:checked').value === "custom") {
+                budget = document.getElementById('budget-manual').value + " грн";
+            }
+
+            const message = `Новий тікет! [Послуги розробки]\n\n` +
+                            `Тип: Інше\n` +
+                            `Категорія: ${category}\n` +
+                            `Назва: ${projName}\n` +
+                            `Суть: ${essence}\n` +
+                            `Кошти: ${budget}\n\n` +
+                            `telegram клієнта: @Vitalik_3331`;
+
+            btn.disabled = true;
+            btn.innerText = "Відправка...";
+
+            try {
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: CHAT_ID, text: message })
+                });
+                document.getElementById('toast').classList.add('show');
+                setTimeout(() => { window.location.href = '../../vitalik.html'; }, 2000);
+            } catch (err) {
+                alert('Помилка!');
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
